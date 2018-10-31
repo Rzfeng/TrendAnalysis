@@ -23,53 +23,39 @@ def getRanks(csvFile):
     f = pd.read_csv(csvFile)
     keep_col = ['Symbol']
     new_f = f[keep_col]
-    with open('document.csv','a') as fd:
+    with open('data.csv','w') as fd:
+        rowLabels = 'Symbol,zacks,yahoo,theStreet,investor' + '\n'
+        fd.write(rowLabels)
         for index, row in new_f.iterrows():
+            curStock = str(row["Symbol"])
             newEntry = ''
-            newEntry = row["Symbol"] + ',' + search.zacks(curStock) + ',' + search.yahoo(curStock) + ',' + search.theStreet(curStock) + ',' + search.investor(curStock)
+            newEntry = curStock + ',' + search.zacks(curStock) + ',' + search.yahoo(curStock) + ',' + search.theStreet(curStock) + ',' + search.investor(curStock) + '\n'
+            print(newEntry)
             fd.write(newEntry)
 
+def getResults(csvFile1, csvFile2):
+    f1 = pd.read_csv(csvFile1)
+    keep_col = ['Symbol', 'Time', 'Estimate', 'Reported', 'Surprise', '%Surp', 'Price Change']
+    f1 = f1[keep_col]
+
+    f2 = pd.read_csv(csvFile2)
+    f = f1.merge(f2, how='left', on='Symbol')
+    print(f.columns.values[8])
+    print(f)
+
+    with open('results.csv', 'w') as fd:
+            ignore = 1
+            epsResult = ''
+            priceResult = ''
+
+            colLabels = 'Symbol, eps\%, price%, zacks, yahoo, theStreet, investor' + '\n'
+            fd.write(colLabels)
+            for index, row in f.iterrows():
+                newEntry = str(row["Symbol"]) + ',' + str(row["%Surp"]) + ',' + str(row["Price Change"]) + ',' + str(row["zacks"]) + ',' + str(row["yahoo"]) + ',' + str(row["theStreet"])  + ',' + str(row["investor"]) + '\n'
+                print(newEntry)
+                fd.write(newEntry)
+
 ##############################################################################
-getRanks("10:31.csv")
+getRanks("10:30.csv")
 
-
-# with open('10:31.csv', 'r') as istr:
-#     with open('output.csv', 'w') as ostr:
-#         ignore = 1
-#         epsResult = ''
-#         priceResult = ''
-#
-#         for line in istr:
-#             #EPS Analysis
-#             if ignore == 1:
-#                 ignore = 0
-#             else:
-#                 expected = float(line.split(',')[2])
-#                 actual = float(line.split(',')[3])
-#                 epsChange = str(line.split(',')[5])
-#                 epsChange = float(epsChange[:-2])
-#                 priceChange = str(line.split(',')[6])
-#                 priceChange = float(priceChange[:-2])
-#
-#
-#                 if epsChange < 0:
-#                     epsResult = 'Missed'
-#                 elif epsChange > 0:
-#                     epsResult = 'Exceeded'
-#                 else:
-#                     epsResult = 'Neutral'
-#                 print(epsResult)
-#
-#                 if priceChange < 0:
-#                     priceResult = 'Decrease'
-#                 elif priceChange > 0:
-#                     priceResult = 'Increase'
-#                 else:
-#                     priceResult = 'Neutral'
-#                 print(priceResult)
-#
-#             #write to csv file
-#             curStock = line.split(',')[0]
-#             line = line.rstrip('\n') + ',' + search.zacks(curStock) + ',' + search.yahoo(curStock) + ',' + search.theStreet(curStock) + ',' + search.investor(curStock) + ',' + epsResult + ',' + priceResult
-#             print(line)
-#             print(line, file=ostr)
+getResults("10:30.csv", "data.csv")
